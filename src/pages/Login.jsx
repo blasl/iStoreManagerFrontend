@@ -27,7 +27,7 @@ export default function Login() {
       navigate(redirectTo, { replace: true })
     } catch (err) {
       setError(err.response?.status === 401 || err.response?.status === 403
-        ? 'Invalid email or password.'
+        ? 'Correo o contraseña incorrectos.'
         : getErrorMessage(err))
     } finally {
       setSubmitting(false)
@@ -35,11 +35,11 @@ export default function Login() {
   }
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to manage your inventory">
+    <AuthLayout title="Bienvenido de nuevo" subtitle="Inicia sesión para gestionar tu inventario">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <FormInput label="Email" icon={Mail} type="email" name="email"
+        <FormInput label="Correo electrónico" icon={Mail} type="email" name="email"
           value={form.email} onChange={handleChange} required autoComplete="email" />
-        <FormInput label="Password" icon={Lock} type="password" name="password"
+        <FormInput label="Contraseña" icon={Lock} type="password" name="password"
           value={form.password} onChange={handleChange} required autoComplete="current-password" />
 
         {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
@@ -48,12 +48,12 @@ export default function Login() {
           className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2.5
                      text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition">
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          Sign in
+          Iniciar sesión
         </button>
       </form>
 
       <p className="text-center text-sm text-slate-500 mt-6">
-        Don't have an account?{' '}
+        ¿No tenes cuenta? / Registrate{' '}
         <Link to="/register" className="font-medium text-indigo-600 hover:underline">Register</Link>
       </p>
     </AuthLayout>

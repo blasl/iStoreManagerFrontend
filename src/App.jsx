@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import AuthProvider from './context/AuthProvider'
 import ProtectedRoute from './components/ProtectedRoute'
 import PublicOnlyRoute from './components/PublicOnlyRoute'
+import AppLayout from './components/AppLayout'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Inventory from './pages/Inventory'
@@ -17,7 +18,9 @@ export default function App() {
           </Route>
 
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Inventory />} />
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Inventory />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
