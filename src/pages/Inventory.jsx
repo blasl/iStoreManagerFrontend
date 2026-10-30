@@ -6,6 +6,8 @@ import { getErrorMessage } from '../utils/getErrorMessage'
 import StatusTabs from '../components/StatusTabs'
 import PhoneTable from '../components/PhoneTable'
 import PhoneFormModal from '../components/PhoneFormModal'
+import PhoneDetailModal from '../components/PhoneDetailModal'
+import SellModal from '../components/SellModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function Inventory() {
@@ -17,6 +19,8 @@ export default function Inventory() {
   const [search, setSearch] = useState('')
 
   const [formState, setFormState] = useState({ open: false, phone: null })
+  const [detailId, setDetailId] = useState(null)
+  const [sellId, setSellId] = useState(null)
   const [deleting, setDeleting] = useState(null)
   const [deleteBusy, setDeleteBusy] = useState(false)
   const [deleteError, setDeleteError] = useState('')
@@ -54,11 +58,18 @@ export default function Inventory() {
     return phones
       .filter((p) => filter === 'ALL' || p.status === filter)
       .filter((p) => !q || p.model.toLowerCase().includes(q) || p.imei.includes(q))
-      .sort((a, b) => b.id - a.id) // newest first
+      .sort((a, b) => b.id - a.id)
   }, [phones, filter, search])
 
+  const detailPhone = phones.find((p) => p.id === detailId)
+  const sellPhone = phones.find((p) => p.id === sellId)
+
+  // --- phone form ---
   const openCreate = () => setFormState({ open: true, phone: null })
-  const openEdit = (phone) => setFormState({ open: true, phone })
+  const openEdit = (phone) => {
+    setDetailId(null)
+    setFormState({ open: true, phone })
+  }
   const closeForm = () => setFormState({ open: false, phone: null })
 
   const handleSaved = (saved, wasEdit) => {
@@ -66,6 +77,21 @@ export default function Inventory() {
     closeForm()
   }
 
+  // --- detail / expenses ---
+  const handleExpensesChange = (phoneId, total) =>
+    setPhones((prev) => prev.map((p) => (p.id === phoneId ? { ...p, totalExpenses: total } : p)))
+
+  // --- sale ---
+  const openSell = (phone) => {
+    setDetailId(null)
+    setSellId(phone.id)
+  }
+  const handleSold = (sale) => {
+    setPhones((prev) => prev.map((p) => (p.id === sale.phone.id ? sale.phone : p)))
+    setSellId(null)
+  }
+
+  // --- delete ---
   const askDelete = (phone) => {
     setDeleteError('')
     setDeleting(phone)
@@ -151,7 +177,13 @@ export default function Inventory() {
           No hay teléfonos que coincidan con el filtro.
         </p>
       ) : (
-        <PhoneTable phones={visible} onEdit={openEdit} onDelete={askDelete} />
+        <PhoneTable
+          phones={visible}
+          onOpen={(p) => setDetailId(p.id)}
+          onSell={openSell}
+          onEdit={openEdit}
+          onDelete={askDelete}
+        />
       )}
 
       {formState.open && (
@@ -161,6 +193,21 @@ export default function Inventory() {
           onClose={closeForm}
           onSaved={handleSaved}
         />
+      )}
+
+      {detailPhone && (
+        <PhoneDetailModal
+          key={detailPhone.id}
+          phone={detailPhone}
+          onClose={() => setDetailId(null)}
+          onEdit={openEdit}
+          onSell={openSell}
+          onExpensesChange={handleExpensesChange}
+        />
+      )}
+
+      {sellPhone && (
+        <SellModal key={sellPhone.id} phone={sellPhone} onClose={() => setSellId(null)} onSold={handleSold} />
       )}
 
       {deleting && (

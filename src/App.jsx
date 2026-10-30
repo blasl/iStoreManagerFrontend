@@ -1,11 +1,12 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import AuthProvider from './context/AuthProvider'
-import ProtectedRoute from './components/ProtectedRoute'
-import PublicOnlyRoute from './components/PublicOnlyRoute'
-import AppLayout from './components/AppLayout'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Inventory from './pages/Inventory'
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import AuthProvider from "./context/AuthProvider";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PublicOnlyRoute from "./components/PublicOnlyRoute";
+import AppLayout from "./components/AppLayout";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Inventory from "./pages/Inventory";
+import Sales from "./pages/Sales";
 
 export default function App() {
   return (
@@ -23,9 +24,14 @@ export default function App() {
             </Route>
           </Route>
 
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Inventory />} />
+            <Route path="/ventas" element={<Sales />} />
+          </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
-  )
+  );
 }
