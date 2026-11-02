@@ -1,0 +1,6 @@
+[build]
+  publish = "dist"
+
+[build.environment]
+  NETLIFY_DRAWER_ENABLED = "false"
+  NETLIFY_DEV_DRAWER_ENABLED = "false"
