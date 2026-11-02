@@ -23,7 +23,7 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
@@ -56,11 +56,11 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-6">
+      <main className="mx-auto max-w-6xl px-4 py-6 pb-[calc(6rem_+_env(safe-area-inset-bottom))] md:pb-6">
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-slate-200 bg-white md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden">
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end} className={bottomLink}>
             <Icon className="h-5 w-5" />
