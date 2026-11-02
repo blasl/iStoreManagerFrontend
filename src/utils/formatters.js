@@ -23,3 +23,15 @@ export const profitClass = (value) =>
 
 export const formatSigned = (value) =>
   value > 0 ? `+${formatMoney(value)}` : formatMoney(value)
+
+export const daysSince = (iso) => {
+  if (!iso) return null
+  const [y, m, d] = iso.split('-').map(Number)
+  const [ty, tm, td] = todayISO().split('-').map(Number)
+  return Math.max(0, Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(y, m - 1, d)) / 86400000))
+}
+
+export const formatPercent = (value) => (Number.isFinite(value) ? `${value.toFixed(1)}%` : '—')
+
+export const formatCompact = (value) =>
+  new Intl.NumberFormat('es-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value)

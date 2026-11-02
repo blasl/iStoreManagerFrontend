@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, PackageOpen, Plus, Search } from 'lucide-react'
+import { PackageOpen, Plus, Search } from 'lucide-react'
+import { ListSkeleton } from '../components/Skeleton'
 import { phoneService } from '../services/phoneService'
 import { FILTER_TABS } from '../utils/phoneStatus'
 import { getErrorMessage } from '../utils/getErrorMessage'
@@ -144,9 +145,7 @@ export default function Inventory() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-        </div>
+        <ListSkeleton />
       ) : error ? (
         <div className="rounded-xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
           <p className="text-sm text-red-600">{error}</p>

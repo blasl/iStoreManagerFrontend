@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Inventory from "./pages/Inventory";
 import Sales from "./pages/Sales";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
   return (
@@ -18,14 +19,9 @@ export default function App() {
             <Route path="/register" element={<Register />} />
           </Route>
 
-          <Route element={<ProtectedRoute />}>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<Inventory />} />
-            </Route>
-          </Route>
-
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Inventory />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/inventario" element={<Inventory />} />
             <Route path="/ventas" element={<Sales />} />
           </Route>
 

@@ -1,24 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Receipt } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Receipt } from 'lucide-react'
 import { saleService } from '../services/saleService'
+import { PERIODS, filterSalesByPeriod } from '../utils/period'
+import { usePeriod } from '../utils/usePeriod'
 import { formatDate, formatMoney, formatSigned, profitClass, sumMoney } from '../utils/formatters'
 import { getErrorMessage } from '../utils/getErrorMessage'
-
-function SummaryCard({ label, value, className = 'text-slate-800' }) {
-  return (
-    <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={`mt-1 text-xl font-bold ${className}`}>{value}</p>
-    </div>
-  )
-}
+import PeriodTabs from '../components/PeriodTabs'
+import StatCard from '../components/StatCard'
+import { CardsSkeleton, ListSkeleton } from '../components/Skeleton'
 
 export default function Sales() {
+  const [period, setPeriod] = usePeriod()
   const [sales, setSales] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       setSales(await saleService.getAll())
       setError('')
@@ -27,44 +24,53 @@ export default function Sales() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     load()
-  }, [])
+  }, [load])
 
   const retry = () => {
     setLoading(true)
     load()
   }
 
+  const filtered = useMemo(() => filterSalesByPeriod(sales, period), [sales, period])
+
   const sorted = useMemo(
-    () => [...sales].sort((a, b) => b.saleDate.localeCompare(a.saleDate) || b.id - a.id),
-    [sales]
+    () => [...filtered].sort((a, b) => b.saleDate.localeCompare(a.saleDate) || b.id - a.id),
+    [filtered]
   )
 
   const totals = useMemo(
     () => ({
-      revenue: sumMoney(sales.map((s) => s.salePrice)),
-      cost: sumMoney(sales.map((s) => s.totalCost)),
-      profit: sumMoney(sales.map((s) => s.netProfit)),
+      revenue: sumMoney(filtered.map((s) => s.salePrice)),
+      cost: sumMoney(filtered.map((s) => s.totalCost)),
+      profit: sumMoney(filtered.map((s) => s.netProfit)),
     }),
-    [sales]
+    [filtered]
   )
+
+  const periodLabel = PERIODS.find((p) => p.key === period)?.label.toLowerCase()
 
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Ventas</h1>
         <p className="text-sm text-slate-500">
-          {loading ? 'Cargando…' : `${sales.length} ${sales.length === 1 ? 'venta' : 'ventas'} registradas`}
+          {loading
+            ? 'Cargando…'
+            : `${filtered.length} ${filtered.length === 1 ? 'venta' : 'ventas'} · ${periodLabel}`}
         </p>
       </div>
 
+      <PeriodTabs value={period} onChange={setPeriod} />
+
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-        </div>
+        <>
+          <CardsSkeleton />
+          <ListSkeleton />
+        </>
       ) : error ? (
         <div className="rounded-xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
           <p className="text-sm text-red-600">{error}</p>
@@ -82,13 +88,25 @@ export default function Sales() {
           <p className="mt-3 font-medium text-slate-700">Aún no hay ventas</p>
           <p className="text-sm text-slate-500">Marca un teléfono como vendido desde el inventario.</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center rounded-xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
+          <Receipt className="h-10 w-10 text-slate-300" />
+          <p className="mt-3 font-medium text-slate-700">No hay ventas en este período</p>
+          <button
+            type="button"
+            onClick={() => setPeriod('todo')}
+            className="mt-3 text-sm font-medium text-indigo-600 hover:underline"
+          >
+            Ver todo el tiempo
+          </button>
+        </div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <SummaryCard label="Ventas" value={sales.length} />
-            <SummaryCard label="Total vendido" value={formatMoney(totals.revenue)} />
-            <SummaryCard label="Costo total" value={formatMoney(totals.cost)} />
-            <SummaryCard
+            <StatCard label="Ventas" value={filtered.length} />
+            <StatCard label="Total vendido" value={formatMoney(totals.revenue)} />
+            <StatCard label="Costo total" value={formatMoney(totals.cost)} />
+            <StatCard
               label="Ganancia neta"
               value={formatSigned(totals.profit)}
               className={profitClass(totals.profit)}
