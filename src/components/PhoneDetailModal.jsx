@@ -7,6 +7,7 @@ import { saleService } from '../services/saleService'
 import { formatDate, formatMoney, formatSigned, profitClass, sumMoney } from '../utils/formatters'
 import { getErrorMessage } from '../utils/getErrorMessage'
 import { inputClass } from '../utils/styles'
+import PhotoGallery from './PhotoGallery'
 
 function Row({ label, value, strong, className = '' }) {
   return (
@@ -17,10 +18,10 @@ function Row({ label, value, strong, className = '' }) {
   )
 }
 
-export default function PhoneDetailModal({ phone, onClose, onEdit, onSell, onExpensesChange }) {
+export default function PhoneDetailModal({ phone, onClose, onEdit, onSell, onExpensesChange, onPhotosChange }) {
   const isSold = phone.status === 'VENDIDO'
 
-  const [expenses, setExpenses] = useState(null) // null = loading
+  const [expenses, setExpenses] = useState(null)
   const [sale, setSale] = useState(null)
   const [loadError, setLoadError] = useState('')
 
@@ -125,6 +126,8 @@ export default function PhoneDetailModal({ phone, onClose, onEdit, onSell, onExp
             </>
           )}
         </section>
+
+        <PhotoGallery phone={phone} onChange={(photos) => onPhotosChange(phone.id, photos)} />
 
         {/* Sale info (sold phones) */}
         {isSold && (

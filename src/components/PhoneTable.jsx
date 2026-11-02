@@ -1,8 +1,19 @@
-import { DollarSign, Pencil, Receipt, Trash2 } from 'lucide-react'
+import { Camera, DollarSign, Pencil, Receipt, Trash2 } from 'lucide-react'
 import StatusBadge from './StatusBadge'
+import PhoneThumb from './PhoneThumb'
 import { formatDate, formatMoney, sumMoney } from '../utils/formatters'
 
 const cost = (p) => sumMoney([p.purchasePrice, p.totalExpenses ?? 0])
+const missingPhotos = (p) => !p.photoCount && p.status !== 'VENDIDO'
+
+function NoPhotos() {
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
+      <Camera className="h-3 w-3" />
+      Sin fotos
+    </span>
+  )
+}
 
 function RowActions({ phone, onOpen, onSell, onEdit, onDelete }) {
   const sold = phone.status === 'VENDIDO'
@@ -13,8 +24,8 @@ function RowActions({ phone, onOpen, onSell, onEdit, onDelete }) {
       <button
         type="button"
         onClick={() => onOpen(phone)}
-        aria-label={sold ? 'Ver detalle' : `Gastos de ${phone.model}`}
-        title={sold ? 'Ver detalle' : 'Gastos'}
+        aria-label={sold ? 'Ver detalle' : `Gastos y fotos de ${phone.model}`}
+        title={sold ? 'Ver detalle' : 'Gastos y fotos'}
         className={base + 'hover:bg-slate-100 hover:text-indigo-600'}
       >
         <Receipt className="h-4 w-4" />
@@ -81,10 +92,16 @@ export default function PhoneTable({ phones, onOpen, onSell, onEdit, onDelete })
             {phones.map((phone) => (
               <tr key={phone.id} onClick={() => onOpen(phone)} className="cursor-pointer hover:bg-slate-50">
                 <td className="px-4 py-3">
-                  <button type="button" onClick={() => onOpen(phone)} className="text-left font-medium text-slate-800">
-                    {phone.model}
-                  </button>
-                  {phone.storage && <p className="text-xs text-slate-500">{phone.storage}</p>}
+                  <div className="flex items-center gap-3">
+                    <PhoneThumb phone={phone} className="h-11 w-11" />
+                    <div className="min-w-0">
+                      <button type="button" onClick={() => onOpen(phone)} className="text-left font-medium text-slate-800">
+                        {phone.model}
+                      </button>
+                      {phone.storage && <p className="text-xs text-slate-500">{phone.storage}</p>}
+                      {missingPhotos(phone) && <NoPhotos />}
+                    </div>
+                  </div>
                 </td>
                 <td className="hidden px-4 py-3 font-mono text-xs text-slate-600 lg:table-cell">{phone.imei}</td>
                 <td className="px-4 py-3 text-slate-600">
@@ -127,11 +144,14 @@ export default function PhoneTable({ phones, onOpen, onSell, onEdit, onDelete })
 
           return (
             <li key={phone.id} onClick={() => onOpen(phone)} className="flex cursor-pointer items-center gap-3 p-3">
+              <PhoneThumb phone={phone} className="h-16 w-16" />
+
               <button type="button" onClick={() => onOpen(phone)} className="min-w-0 flex-1 text-left">
                 <p className="truncate font-semibold text-slate-800">{phone.model}</p>
                 <p className="truncate text-xs text-slate-500">{details}</p>
-                <div className="mt-1.5">
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <StatusBadge status={phone.status} />
+                  {missingPhotos(phone) && <NoPhotos />}
                 </div>
               </button>
 

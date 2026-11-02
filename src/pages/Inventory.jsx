@@ -1,116 +1,155 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { PackageOpen, Plus, Search } from 'lucide-react'
-import { ListSkeleton } from '../components/Skeleton'
-import { phoneService } from '../services/phoneService'
-import { FILTER_TABS } from '../utils/phoneStatus'
-import { getErrorMessage } from '../utils/getErrorMessage'
-import StatusTabs from '../components/StatusTabs'
-import PhoneTable from '../components/PhoneTable'
-import PhoneFormModal from '../components/PhoneFormModal'
-import PhoneDetailModal from '../components/PhoneDetailModal'
-import SellModal from '../components/SellModal'
-import ConfirmDialog from '../components/ConfirmDialog'
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { PackageOpen, Plus, Search } from "lucide-react";
+import { ListSkeleton } from "../components/Skeleton";
+import { phoneService } from "../services/phoneService";
+import { FILTER_TABS } from "../utils/phoneStatus";
+import { getErrorMessage } from "../utils/getErrorMessage";
+import StatusTabs from "../components/StatusTabs";
+import PhoneTable from "../components/PhoneTable";
+import PhoneFormModal from "../components/PhoneFormModal";
+import PhoneDetailModal from "../components/PhoneDetailModal";
+import SellModal from "../components/SellModal";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function Inventory() {
-  const [phones, setPhones] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [phones, setPhones] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [filter, setFilter] = useState('ALL')
-  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
 
-  const [formState, setFormState] = useState({ open: false, phone: null })
-  const [detailId, setDetailId] = useState(null)
-  const [sellId, setSellId] = useState(null)
-  const [deleting, setDeleting] = useState(null)
-  const [deleteBusy, setDeleteBusy] = useState(false)
-  const [deleteError, setDeleteError] = useState('')
+  const [formState, setFormState] = useState({ open: false, phone: null });
+  const [detailId, setDetailId] = useState(null);
+  const [sellId, setSellId] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const load = useCallback(async () => {
     try {
-      setPhones(await phoneService.getActive())
-      setError('')
+      setPhones(await phoneService.getActive());
+      setError("");
     } catch (err) {
-      setError(getErrorMessage(err, 'No se pudo cargar el inventario.'))
+      setError(getErrorMessage(err, "No se pudo cargar el inventario."));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    load()
-  }, [load])
+    load();
+  }, [load]);
 
   const retry = () => {
-    setLoading(true)
-    load()
-  }
+    setLoading(true);
+    load();
+  };
 
   const counts = useMemo(() => {
-    const c = { ALL: phones.length, DISPONIBLE: 0, EN_REPARACION: 0, RESERVADO: 0, VENDIDO: 0 }
+    const c = {
+      ALL: phones.length,
+      DISPONIBLE: 0,
+      EN_REPARACION: 0,
+      RESERVADO: 0,
+      VENDIDO: 0,
+    };
     phones.forEach((p) => {
-      if (c[p.status] !== undefined) c[p.status]++
-    })
-    return c
-  }, [phones])
+      if (c[p.status] !== undefined) c[p.status]++;
+    });
+    return c;
+  }, [phones]);
 
   const visible = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = search.trim().toLowerCase();
     return phones
-      .filter((p) => filter === 'ALL' || p.status === filter)
-      .filter((p) => !q || p.model.toLowerCase().includes(q) || p.imei.includes(q))
-      .sort((a, b) => b.id - a.id)
-  }, [phones, filter, search])
+      .filter((p) => filter === "ALL" || p.status === filter)
+      .filter(
+        (p) => !q || p.model.toLowerCase().includes(q) || p.imei.includes(q),
+      )
+      .sort((a, b) => b.id - a.id);
+  }, [phones, filter, search]);
 
-  const detailPhone = phones.find((p) => p.id === detailId)
-  const sellPhone = phones.find((p) => p.id === sellId)
+  const detailPhone = phones.find((p) => p.id === detailId);
+  const sellPhone = phones.find((p) => p.id === sellId);
 
   // --- phone form ---
-  const openCreate = () => setFormState({ open: true, phone: null })
+  const openCreate = () => setFormState({ open: true, phone: null });
   const openEdit = (phone) => {
-    setDetailId(null)
-    setFormState({ open: true, phone })
-  }
-  const closeForm = () => setFormState({ open: false, phone: null })
+    setDetailId(null);
+    setFormState({ open: true, phone });
+  };
+  const closeForm = () => setFormState({ open: false, phone: null });
 
   const handleSaved = (saved, wasEdit) => {
-    setPhones((prev) => (wasEdit ? prev.map((p) => (p.id === saved.id ? saved : p)) : [saved, ...prev]))
-    closeForm()
-  }
+    setPhones((prev) =>
+      wasEdit
+        ? prev.map((p) => (p.id === saved.id ? saved : p))
+        : [saved, ...prev],
+    );
+    closeForm();
+    if (!wasEdit) setDetailId(saved.id);
+  };
 
   // --- detail / expenses ---
   const handleExpensesChange = (phoneId, total) =>
-    setPhones((prev) => prev.map((p) => (p.id === phoneId ? { ...p, totalExpenses: total } : p)))
+    setPhones((prev) =>
+      prev.map((p) => (p.id === phoneId ? { ...p, totalExpenses: total } : p)),
+    );
+
+  const handlePhotosChange = (phoneId, photos) =>
+    setPhones((prev) =>
+      prev.map((p) =>
+        p.id === phoneId
+          ? {
+              ...p,
+              photoCount: photos.length,
+              thumbnailUrl: photos[0]?.thumbUrl ?? null,
+            }
+          : p,
+      ),
+    );
 
   // --- sale ---
   const openSell = (phone) => {
-    setDetailId(null)
-    setSellId(phone.id)
-  }
+    setDetailId(null);
+    setSellId(phone.id);
+  };
   const handleSold = (sale) => {
-    setPhones((prev) => prev.map((p) => (p.id === sale.phone.id ? sale.phone : p)))
-    setSellId(null)
-  }
+    setPhones((prev) =>
+      prev.map((p) =>
+        p.id === sale.phone.id
+          ? {
+              ...p,
+              ...sale.phone,
+              thumbnailUrl: p.thumbnailUrl,
+              photoCount: p.photoCount,
+            }
+          : p,
+      ),
+    );
+    setSellId(null);
+  };
 
   // --- delete ---
   const askDelete = (phone) => {
-    setDeleteError('')
-    setDeleting(phone)
-  }
+    setDeleteError("");
+    setDeleting(phone);
+  };
 
   const confirmDelete = async () => {
-    setDeleteBusy(true)
-    setDeleteError('')
+    setDeleteBusy(true);
+    setDeleteError("");
     try {
-      await phoneService.remove(deleting.id)
-      setPhones((prev) => prev.filter((p) => p.id !== deleting.id))
-      setDeleting(null)
+      await phoneService.remove(deleting.id);
+      setPhones((prev) => prev.filter((p) => p.id !== deleting.id));
+      setDeleting(null);
     } catch (err) {
-      setDeleteError(getErrorMessage(err, 'No se pudo eliminar el teléfono.'))
+      setDeleteError(getErrorMessage(err, "No se pudo eliminar el teléfono."));
     } finally {
-      setDeleteBusy(false)
+      setDeleteBusy(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-5">
@@ -118,7 +157,9 @@ export default function Inventory() {
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Inventario</h1>
           <p className="text-sm text-slate-500">
-            {loading ? 'Cargando…' : `${phones.length} ${phones.length === 1 ? 'teléfono' : 'teléfonos'}`}
+            {loading
+              ? "Cargando…"
+              : `${phones.length} ${phones.length === 1 ? "teléfono" : "teléfonos"}`}
           </p>
         </div>
         <button
@@ -131,7 +172,12 @@ export default function Inventory() {
         </button>
       </div>
 
-      <StatusTabs tabs={FILTER_TABS} counts={counts} active={filter} onChange={setFilter} />
+      <StatusTabs
+        tabs={FILTER_TABS}
+        counts={counts}
+        active={filter}
+        onChange={setFilter}
+      />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -160,8 +206,12 @@ export default function Inventory() {
       ) : phones.length === 0 ? (
         <div className="flex flex-col items-center rounded-xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
           <PackageOpen className="h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-medium text-slate-700">Aún no tienes teléfonos</p>
-          <p className="text-sm text-slate-500">Agrega el primero para empezar a controlar tu stock.</p>
+          <p className="mt-3 font-medium text-slate-700">
+            Aún no tienes teléfonos
+          </p>
+          <p className="text-sm text-slate-500">
+            Agrega el primero para empezar a controlar tu stock.
+          </p>
           <button
             type="button"
             onClick={openCreate}
@@ -187,7 +237,7 @@ export default function Inventory() {
 
       {formState.open && (
         <PhoneFormModal
-          key={formState.phone?.id ?? 'new'}
+          key={formState.phone?.id ?? "new"}
           phone={formState.phone}
           onClose={closeForm}
           onSaved={handleSaved}
@@ -202,11 +252,17 @@ export default function Inventory() {
           onEdit={openEdit}
           onSell={openSell}
           onExpensesChange={handleExpensesChange}
+          onPhotosChange={handlePhotosChange}
         />
       )}
 
       {sellPhone && (
-        <SellModal key={sellPhone.id} phone={sellPhone} onClose={() => setSellId(null)} onSold={handleSold} />
+        <SellModal
+          key={sellPhone.id}
+          phone={sellPhone}
+          onClose={() => setSellId(null)}
+          onSold={handleSold}
+        />
       )}
 
       {deleting && (
@@ -220,5 +276,5 @@ export default function Inventory() {
         />
       )}
     </div>
-  )
+  );
 }
