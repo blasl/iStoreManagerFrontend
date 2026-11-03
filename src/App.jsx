@@ -19,10 +19,12 @@ export default function App() {
             <Route path="/register" element={<Register />} />
           </Route>
 
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/inventario" element={<Inventory />} />
-            <Route path="/ventas" element={<Sales />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/inventario" element={<Inventory />} />
+              <Route path="/ventas" element={<Sales />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
