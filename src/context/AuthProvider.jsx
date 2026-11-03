@@ -5,7 +5,7 @@ import { tokenStorage } from '../utils/tokenStorage'
 
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true) // true while checking an existing token
+  const [loading, setLoading] = useState(true)
 
   const fetchUser = useCallback(async () => {
     const data = await authService.me()
